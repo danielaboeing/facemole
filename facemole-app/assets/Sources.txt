@@ -1,0 +1,10 @@
+live.png:
+https://pixabay.com/de/photos/menschen-wandern-stadt-st%C3%A4dtischen-1031169/
+https://pixabay.com/de/illustrations/play-pause-button-play-taste-taste-2749271/
+addPerson.png:
+https://pixabay.com/de/vectors/plus-hinzuf%C3%BCgen-erh%C3%B6hen-icon-1270001/
+https://pixabay.com/de/photos/m%C3%A4dchen-traurig-portr%C3%A4t-gesicht-2961959/
+andere:
+https://pixabay.com/de/vectors/linse-foto-kamera-icon-ausl%C3%B6ser-1723832/
+https://pixabay.com/de/vectors/bild-medien-icon-symbol-visuelle-2935360/
+https://pixabay.com/de/vectors/haken-h%C3%A4kchen-check-abgeschlossen-1727484/

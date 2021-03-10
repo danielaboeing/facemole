@@ -16,3 +16,8 @@ Frontend:
 2. expo (npm install -g expo-cli)
 3. Expo-Packets:
 * expo-camera
+* react-native-router-flux
+* react-native-screens
+* react-native-gesture-handler
+* react-native-reanimated
+* expo-image-picker
