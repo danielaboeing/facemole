@@ -137,6 +137,11 @@ export default StyleSheet.create({
         marginRight: 'auto',
         bottom: '10%',
         right: '10%'
+    },
+
+    //LivePage
+    givenNameDisplay: {
+        color: 'red'
     }
 
 });

@@ -27,31 +27,31 @@ export default class AddPersonPage extends React.Component<any, any> {
                     hasCameraPermission: data.status
                 })
             });
-        if(Platform.OS !== 'web'){
+        if (Platform.OS !== 'web') {
             ImagePicker.requestMediaLibraryPermissionsAsync()
-            .then(data => {
-                this.setState({
-                    hasMediaLibraryPermission: data.status
+                .then(data => {
+                    this.setState({
+                        hasMediaLibraryPermission: data.status
+                    })
                 })
-            })
         }
     }
 
-    async choosePhoto(){
-        if(this.state.hasMediaLibraryPermission){
+    async choosePhoto() {
+        if (this.state.hasMediaLibraryPermission) {
             let result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.All,
                 allowsEditing: true,
                 aspect: [1, 2],
                 quality: 1,
             });
-            if (!result.cancelled){
+            if (!result.cancelled) {
                 this.setState({
                     capturedImage: result
                 })
             }
         }
-        else{
+        else {
             Alert.alert("Fehler", "Es kann nicht auf Bilder zugegriffen werden, wenn keine Erlaubnis für den Zugriff auf die Media Library besteht.")
         }
     }
@@ -91,12 +91,12 @@ export default class AddPersonPage extends React.Component<any, any> {
                         source={{ uri: this.state.capturedImage.uri }}
                     >
                         <View style={styles.givenNameContainer}>
-                        <TextInput
-                            style={styles.givenNameInput}
-                            onChangeText={this.setGivenName}
-                            placeholder="Namen hier eingeben..."
-                            value={this.state.givenName}
-                        />
+                            <TextInput
+                                style={styles.givenNameInput}
+                                onChangeText={this.setGivenName}
+                                placeholder="Namen hier eingeben..."
+                                value={this.state.givenName}
+                            />
                         </View>
                         <TouchableHighlight
                             style={styles.savePhoto}
