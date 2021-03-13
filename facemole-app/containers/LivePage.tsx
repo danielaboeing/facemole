@@ -1,6 +1,11 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Camera } from 'expo-camera';
+import { Camera, FaceDetectionResult } from 'expo-camera';
+import axios from 'axios';
+import FormData from 'form-data';
+import '../global'
+import * as FaceDetector from 'expo-face-detector';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 import styles from '../styles/Main.style';
 
@@ -14,91 +19,133 @@ export default class LivePage extends React.Component<any, any> {
 
         }
         this.processPhoto = this.processPhoto.bind(this)
+        this.onFacesDetected = this.onFacesDetected.bind(this)
     }
 
     componentDidMount() {
-        let intervalID = setInterval(this.processPhoto, 1000);
-        this.setState({ intervalID: intervalID })
         Camera.requestPermissionsAsync()
             .then(data => {
                 this.setState({
-                    hasCameraPermission: data.status
+                    hasCameraPermission: data.status,
+                    faceDetectorSettings: {
+                        mode: FaceDetector.Constants.Mode.accurate,
+                        detectLandmarks: FaceDetector.Constants.Landmarks.none,
+                        runClassifications: FaceDetector.Constants.Classifications.none,
+                        minDetectionInterval: 100,
+                        tracking: true
+                    }
                 })
             });
     }
 
-    componentWillUnmount() {
-        clearInterval(this.state.intervalID);
-    }
-
-    async processPhoto() {
+    async processPhoto(face: any) {
         // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
         if (this.camera && this.state.hasCameraPermission) {
             // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
             let photo = await this.camera.takePictureAsync();
-            console.log(photo)
 
+            let manipPhoto = await ImageManipulator.manipulateAsync(photo.uri, [{
+                crop: {
+                    originX: (face.bounds.origin.x >= 0 ? face.bounds.origin.x : 0),
+                    originY: (face.bounds.origin.y >= 0 ? face.bounds.origin.y : 0),
+                    width: face.bounds.size.width,
+                    height: face.bounds.size.height
+                }
+            }])
             // contact server
-            /*
-            let faces: any;
-            this.setState({
-                detectedFaces: []
+            let formData = new FormData();
+            let uriParts = manipPhoto.uri.split('.');
+            let fileType = uriParts[uriParts.length - 1];
+
+            formData.append('image', {
+                uri: manipPhoto.uri,
+                name: `image.${fileType}`,
+                type: `image/${fileType}`,
             })
-            faces.forEach((item: any) => {
-                this.setState((currentState: any) => {
-                    return ({
-                        detectedFaces: [...currentState.detectedFaces,
-                        {
-                            x: item.bounds.origin.x,
-                            y: item.bounds.origin.y,
-                            height: item.bounds.size.height,
-                            width: item.bounds.size.width,
-                            givenName: ''
+
+
+            let res: any = await axios({
+                method: 'post',
+                // @ts-ignore
+                url: global.__SERVER_PATH__ + "/api/1234/compare",
+                data: formData,
+                headers: {
+
+                    'Content-Type': 'multipart/form-data',
+                }
+            })
+            this.setState((currentState: any) => {
+                return ({
+                    detectedFaces: currentState.detectedFaces.map((e: any) => {
+                        if (e.faceID === face.faceID) {
+                            e.givenName = res.data.givenName
                         }
-                        ]
+                        return e
                     })
                 })
-            })*/
+            })
+
         }
+
+
 
 
     }
 
-    render() {
-        let rectangles: JSX.Element[] = []
-        if (this.state.detectedFaces.length > 0) {
-            this.state.detectedFaces.forEach((item: any) => {
-                console.log(item)
-                rectangles.push(<View
-                    style={{
-                        borderWidth: 1,
-                        borderColor: 'red',
-                        position: 'absolute',
-                        top: item.x,
-                        left: item.y,
-                        height: item.height,
-                        width: item.width,
-                    }}
-                >
-                    <Text
-                    style={styles.givenNameDisplay}>
-                        {item.givenName}
-                    </Text>
-                </View>)
-            });
-        }
-        else {
-            rectangles = []
-        }
+    onFacesDetected({ faces }: any) {
+        let allIDs: string[] = []
+        // check if new face was detected by faceID
+        faces.forEach((item: any) => {
+            allIDs.push(item.faceID)
+            if (this.state.detectedFaces.filter((e: any) => e.faceID === item.faceID).length === 0) {
+                // new faceID was added - send image to server
+                this.setState((currentState: any) => {return {
+                    detectedFaces: [...currentState.detectedFaces, {
+                        faceID: item.faceID,
+                        x: item.bounds.origin.x,
+                        y: item.bounds.origin.y,
+                        height: item.bounds.size.height,
+                        width: item.bounds.size.width,
+                        givenName: 'Processing...'
+                    }]
+                }})
+                this.processPhoto(item)
+            }
+            else{
+                // update position of already added faces
+                this.setState((currentState: any) => {
+                    return {
+                        detectedFaces: currentState.detectedFaces.map((e: any) => {
+                            if (e.faceID === item.faceID){
+                                e.x = item.bounds.origin.x;
+                                e.y = item.bounds.origin.y;
+                                e.width = item.bounds.size.width;
+                                e.height = item.bounds.size.height;
+                            }
+                            return e
+                        })
+                    }
+                })
+            }
+        })
 
-        if(this.state.hasCameraPermission === null){
+        // delete faces from array that have disappeared
+        this.setState((currentState: any) => { return {
+            detectedFaces: currentState.detectedFaces.filter((e:any) => allIDs.includes(e.faceID))
+        }}) 
+
+    }
+
+    render() {
+        console.log(this.state.detectedFaces)
+        if (this.state.hasCameraPermission === null) {
             return (
                 <View></View>
             )
         }
-        if (this.state.hasCameraPermission !== 'granted'){
+        if (this.state.hasCameraPermission !== 'granted') {
             return (
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                     <Text>Kein Zugriff auf die Kamera.</Text>
                 </View>
             )
@@ -108,11 +155,30 @@ export default class LivePage extends React.Component<any, any> {
                 <Camera
                     style={{ flex: 1 }}
                     type={Camera.Constants.Type.back}
+                    onFacesDetected={this.onFacesDetected}
+                    faceDetectorSettings={this.state.faceDetectorSettings}
                     // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
                     ref={(ref) => { this.camera = ref }}
                 >
-                    {rectangles}
+
                 </Camera>
+                {
+                    this.state.detectedFaces.map((item: any) => (
+                        <View
+                            key={item.faceID}
+                            style={{
+                                borderWidth: 1,
+                                borderColor: 'red',
+                                position: 'absolute',
+                                left: item.x,
+                                top: item.y,
+                                width: item.width,
+                                height: item.height,
+                            }}
+                        ><Text style={styles.givenNameDisplay}>{item.givenName}</Text></View>
+                    ))
+                    
+                }
             </View>
         )
     }

@@ -141,7 +141,10 @@ export default StyleSheet.create({
 
     //LivePage
     givenNameDisplay: {
-        color: 'red'
+        color: 'red',
+        position: 'absolute',
+        bottom: 0,
+        right: 10
     }
 
 });
