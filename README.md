@@ -10,8 +10,10 @@ Backend:
 2. face_recognition: <code>pip install face_recognition</code>
 3. flask (über pip)
 4. flask-restful (über pip)
-4. flask-cors (über pip)
-4. pymongo (über pip)
+5. flask-cors (über pip)
+6. flask_mongoengine (über pip)
+
+*pymongo (über pip)* (veraltet)
 
 Frontend:
 
@@ -33,3 +35,7 @@ Datenbank:
 
 1. Docker
 2. Container starten mit Shell-Skript
+3. docker exec -it mongod /bin/bash
+4. mongo -u root -p example
+5. use admin
+6. db.grantRolesToUser("root", ["readWrite", {role: "dbAdmin", db: "facemole"}])

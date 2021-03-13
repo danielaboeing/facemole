@@ -1,38 +1,83 @@
+#!/usr/bin/env python
 from flask import Flask
 from flask_restful import Resource, Api
 from flask import request
 from flask import jsonify
 from flask_cors import CORS, cross_origin
 from markupsafe import escape
-import pymongo
+from mongoengine import *
 
 import face_recognition
 
 
 app = Flask(__name__)
+# Cross-Origin allowed
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+# DB configuration
+connect(alias='default',
+db='facemole',
+username='root',
+password='example',
+host='localhost',
+port=27017,
+authentication_source='admin')
+
+# RESTful
 api = Api(app)
 
+# Models
+class Person(Document):
+    givenName = StringField()
+    imageUri = StringField()
 
+class User(Document):
+    fullName = StringField()
+    persons = ListField(ReferenceField(Person))
+
+# For Testing
+Person.objects.delete()
+entry = Person(givenName="Jennifer Lawrence", imageUri="images/known_picture.jpg")
+entry.save()
+
+User.objects.delete()
+userE = User(fullName="Test User", persons=[entry])
+userE.save()
+
+# Routes
 class ComparePerson(Resource):
     def post(self, userid):
-        file = open("face.png", "wb")
-        file.write(request.files["image"].read())
-        file.close()
-
+        
         # search db and compare
-        # image = face_recognition.load_image_file("face.png")
-        #known_image = face_recognition.load_image_file("known_picture.jpg")
-        #unknown_image = face_recognition.load_image_file("unknown_picture.jpg")
-        #known_encoding = face_recognition.face_encodings(known_image)[0]
-        #unknown_encoding = face_recognition.face_encodings(unknown_image)[0]
-        #results = face_recognition.compare_faces([known_encoding], unknown_encoding)
-        return {
-            #"faceID": request.form["faceID"],
-            "givenName": 'Test'
-        }
-
+        unknown_image = face_recognition.load_image_file(request.files["image"])
+        encoding_result = face_recognition.face_encodings(unknown_image)
+        if len(encoding_result) < 1:
+            return {
+                "givenName": "...none found"
+            }
+        unknown_encoding = encoding_result[0]
+        compare_images = []
+        ids = []
+        for person in Person.objects():
+            known_image = face_recognition.load_image_file(person.imageUri)
+            known_encoding = face_recognition.face_encodings(known_image)[0]
+            compare_images.append(known_encoding)
+            ids.append(person.id)
+        
+        counter = 0
+        for match in face_recognition.compare_faces(compare_images, unknown_encoding):
+            if match:
+                best_id = ids[counter]
+                return { # Take first match only
+                    "givenName": Person.objects(id=best_id).first().givenName
+                }
+            counter = counter+1
+        else:
+            return {
+                "givenName": "...none found"
+            }
+        
 
 api.add_resource(ComparePerson, '/api/<userid>/compare')
 

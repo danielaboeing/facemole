@@ -6,6 +6,7 @@ import FormData from 'form-data';
 import '../global'
 import * as FaceDetector from 'expo-face-detector';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Dimensions } from 'react-native';
 
 import styles from '../styles/Main.style';
 
@@ -46,12 +47,14 @@ export default class LivePage extends React.Component<any, any> {
 
             let manipPhoto = await ImageManipulator.manipulateAsync(photo.uri, [{
                 crop: {
-                    originX: (face.bounds.origin.x >= 0 ? face.bounds.origin.x : 0),
-                    originY: (face.bounds.origin.y >= 0 ? face.bounds.origin.y : 0),
-                    width: face.bounds.size.width,
-                    height: face.bounds.size.height
+                    originX: (face.bounds.origin.x >= 0 ? (photo.width / Dimensions.get('window').width)*face.bounds.origin.x : 0),
+                    originY: (face.bounds.origin.y >= 0 ? (photo.height / Dimensions.get('window').height)*face.bounds.origin.y : 0),
+                    width: (photo.width / Dimensions.get('window').width)*face.bounds.size.width,
+                    height: (photo.height / Dimensions.get('window').height)*face.bounds.size.height
                 }
-            }])
+            }], {compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true})
+
+            manipPhoto = photo
             // contact server
             let formData = new FormData();
             let uriParts = manipPhoto.uri.split('.');
@@ -70,10 +73,10 @@ export default class LivePage extends React.Component<any, any> {
                 url: global.__SERVER_PATH__ + "/api/1234/compare",
                 data: formData,
                 headers: {
-
                     'Content-Type': 'multipart/form-data',
                 }
             })
+
             this.setState((currentState: any) => {
                 return ({
                     detectedFaces: currentState.detectedFaces.map((e: any) => {
@@ -99,24 +102,26 @@ export default class LivePage extends React.Component<any, any> {
             allIDs.push(item.faceID)
             if (this.state.detectedFaces.filter((e: any) => e.faceID === item.faceID).length === 0) {
                 // new faceID was added - send image to server
-                this.setState((currentState: any) => {return {
-                    detectedFaces: [...currentState.detectedFaces, {
-                        faceID: item.faceID,
-                        x: item.bounds.origin.x,
-                        y: item.bounds.origin.y,
-                        height: item.bounds.size.height,
-                        width: item.bounds.size.width,
-                        givenName: 'Processing...'
-                    }]
-                }})
+                this.setState((currentState: any) => {
+                    return {
+                        detectedFaces: [...currentState.detectedFaces, {
+                            faceID: item.faceID,
+                            x: item.bounds.origin.x,
+                            y: item.bounds.origin.y,
+                            height: item.bounds.size.height,
+                            width: item.bounds.size.width,
+                            givenName: 'Processing...'
+                        }]
+                    }
+                })
                 this.processPhoto(item)
             }
-            else{
+            else {
                 // update position of already added faces
                 this.setState((currentState: any) => {
                     return {
                         detectedFaces: currentState.detectedFaces.map((e: any) => {
-                            if (e.faceID === item.faceID){
+                            if (e.faceID === item.faceID) {
                                 e.x = item.bounds.origin.x;
                                 e.y = item.bounds.origin.y;
                                 e.width = item.bounds.size.width;
@@ -130,14 +135,15 @@ export default class LivePage extends React.Component<any, any> {
         })
 
         // delete faces from array that have disappeared
-        this.setState((currentState: any) => { return {
-            detectedFaces: currentState.detectedFaces.filter((e:any) => allIDs.includes(e.faceID))
-        }}) 
+        this.setState((currentState: any) => {
+            return {
+                detectedFaces: currentState.detectedFaces.filter((e: any) => allIDs.includes(e.faceID))
+            }
+        })
 
     }
 
     render() {
-        console.log(this.state.detectedFaces)
         if (this.state.hasCameraPermission === null) {
             return (
                 <View></View>
@@ -177,7 +183,7 @@ export default class LivePage extends React.Component<any, any> {
                             }}
                         ><Text style={styles.givenNameDisplay}>{item.givenName}</Text></View>
                     ))
-                    
+
                 }
             </View>
         )
