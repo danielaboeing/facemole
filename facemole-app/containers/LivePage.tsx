@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ImageBackground } from 'react-native';
 import { Camera, FaceDetectionResult } from 'expo-camera';
 import axios from 'axios';
 import FormData from 'form-data';
@@ -9,6 +9,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { Dimensions } from 'react-native';
 
 import styles from '../styles/Main.style';
+import DetectedFace from '../DetectedFace';
 
 export default class LivePage extends React.Component<any, any> {
 
@@ -20,7 +21,9 @@ export default class LivePage extends React.Component<any, any> {
 
         }
         this.processPhoto = this.processPhoto.bind(this)
-        this.onFacesDetected = this.onFacesDetected.bind(this)
+        this.detectFaces = this.detectFaces.bind(this)
+        this.sendPhoto = this.sendPhoto.bind(this)
+        //this.onFacesDetected = this.onFacesDetected.bind(this)
     }
 
     componentDidMount() {
@@ -34,116 +37,201 @@ export default class LivePage extends React.Component<any, any> {
                         runClassifications: FaceDetector.Constants.Classifications.none,
                         minDetectionInterval: 100,
                         tracking: true
-                    }
+                    },
+                    userID: "1234" //TODO
                 })
             });
     }
 
-    async processPhoto(face: any) {
+    processPhoto() {
+
+        this.setState({
+            detectFaces: []
+        })
         // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
         if (this.camera && this.state.hasCameraPermission) {
             // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
-            let photo = await this.camera.takePictureAsync();
-
-            let manipPhoto = await ImageManipulator.manipulateAsync(photo.uri, [{
-                crop: {
-                    originX: (face.bounds.origin.x >= 0 ? (photo.width / Dimensions.get('window').width)*face.bounds.origin.x : 0),
-                    originY: (face.bounds.origin.y >= 0 ? (photo.height / Dimensions.get('window').height)*face.bounds.origin.y : 0),
-                    width: (photo.width / Dimensions.get('window').width)*face.bounds.size.width,
-                    height: (photo.height / Dimensions.get('window').height)*face.bounds.size.height
-                }
-            }], {compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true})
-
-            manipPhoto = photo
-            // contact server
-            let formData = new FormData();
-            let uriParts = manipPhoto.uri.split('.');
-            let fileType = uriParts[uriParts.length - 1];
-
-            formData.append('image', {
-                uri: manipPhoto.uri,
-                name: `image.${fileType}`,
-                type: `image/${fileType}`,
-            })
-
-
-            let res: any = await axios({
-                method: 'post',
-                // @ts-ignore
-                url: global.__SERVER_PATH__ + "/api/1234/compare",
-                data: formData,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
-            })
-
-            this.setState((currentState: any) => {
-                return ({
-                    detectedFaces: currentState.detectedFaces.map((e: any) => {
-                        if (e.faceID === face.faceID) {
-                            e.givenName = res.data.givenName
-                        }
-                        return e
+            this.camera.takePictureAsync()
+                .then((photo: any) => {
+                    this.setState({
+                        capturedImage: photo
                     })
+                    this.detectFaces()
+
+
                 })
-            })
-
         }
+        else {
+            //TODO
+        }
+    }
 
+    detectFaces() {
+        FaceDetector.detectFacesAsync(this.state.capturedImage.uri, this.state.faceDetectorSettings)
+            .then(({ faces }: any) => {
+                faces.forEach((item: any) => {
+                    ImageManipulator.manipulateAsync(this.state.capturedImage.uri, [{
+                        crop: {
+                            originX: (item.bounds.origin.x >= 0 ? item.bounds.origin.x : 0),
+                            originY: (item.bounds.origin.y >= 0 ? item.bounds.origin.y : 0),
+                            width: item.bounds.size.width,
+                            height: item.bounds.size.height
+                        },
+                    }
+                    ], { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true })
+                        .then((manipPhoto: any) => this.sendPhoto(manipPhoto, item))
+                })
 
-
+            })
 
     }
 
-    onFacesDetected({ faces }: any) {
-        let allIDs: string[] = []
-        // check if new face was detected by faceID
-        faces.forEach((item: any) => {
-            allIDs.push(item.faceID)
-            if (this.state.detectedFaces.filter((e: any) => e.faceID === item.faceID).length === 0) {
-                // new faceID was added - send image to server
-                this.setState((currentState: any) => {
-                    return {
-                        detectedFaces: [...currentState.detectedFaces, {
-                            faceID: item.faceID,
-                            x: item.bounds.origin.x,
-                            y: item.bounds.origin.y,
-                            height: item.bounds.size.height,
-                            width: item.bounds.size.width,
-                            givenName: 'Processing...'
-                        }]
-                    }
-                })
-                this.processPhoto(item)
+    sendPhoto(photo: any, item: any) {
+        // contact server
+        let formData = new FormData();
+        let uriParts = photo.uri.split('.');
+        let fileType = uriParts[uriParts.length - 1];
+
+        formData.append('image', {
+            uri: photo.uri,
+            name: `image.${fileType}`,
+            type: `image/${fileType}`,
+        })
+
+
+        axios({
+            method: 'post',
+            // @ts-ignore global variables not known in TS
+            url: global.__SERVER_PATH__ + "/api/" + this.state.userID + "/compare",
+            data: formData,
+            headers: {
+                'Content-Type': 'multipart/form-data',
             }
-            else {
+        }).then((res: any) => {
+            this.setState((currentState: any) => {
+                return ({
+                    detectedFaces: [...currentState.detectedFaces,
+                    new DetectedFace(res.data.ID, res.data.givenName, item.bounds.origin.x, item.bounds.origin.y, item.bounds.size.height, item.bounds.size.width)
+                    ]
+                })
+            })
+
+        })
+
+    }
+
+    /*
+        updateTracking({ faces }: any) {
+    
+            let allIDs: string[] = []
+            faces.forEach((item: any) => {
+                allIDs.push(item.faceID)
+    
+                if (this.state.detectedFaces.filter((e: any) => e.faceID === item.faceID).length === 0) {
+                    // new faceID was added - send image to server
+                    this.setState((currentState: any) => {
+                        return {
+                            detectedFaces: [...currentState.detectedFaces,
+                            new DetectedFace(item.faceID, item.bounds.origin.x, item.bounds.origin.y, item.bounds.size.height, item.bounds.size.weight)
+                            ]
+                        }
+                    })
+    
+                }
+    
                 // update position of already added faces
                 this.setState((currentState: any) => {
                     return {
-                        detectedFaces: currentState.detectedFaces.map((e: any) => {
+                        detectedFaces: currentState.detectedFaces.map((e: DetectedFace) => {
                             if (e.faceID === item.faceID) {
-                                e.x = item.bounds.origin.x;
-                                e.y = item.bounds.origin.y;
-                                e.width = item.bounds.size.width;
-                                e.height = item.bounds.size.height;
+                                e.updateConstraints(item.bounds.origin.x, item.bounds.origin.y, item.bounds.size.width, item.bounds.size.height)
                             }
                             return e
                         })
                     }
                 })
+            })
+            // delete faces from array that have disappeared
+            this.setState((currentState: any) => {
+                return {
+                    detectedFaces: currentState.detectedFaces.filter((e: any) => allIDs.includes(e.faceID))
+                }
+            })
+    
+    
+        }
+    
+    */
+    /*
+    
+        onFacesDetected({ faces }: any) {
+    
+            this.updateTracking(faces);
+    
+            // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
+            if (this.camera && this.state.hasCameraPermission) {
+                // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
+                this.camera.takePictureAsync()
+                    .then((photo: any) => {
+                        FaceDetector.detectFacesAsync(photo.uri, this.state.faceDetectorSettings)
+                            .then(({ newFaces }: any) => {
+                                newFaces.forEach((item: any) => {
+                                    ImageManipulator.manipulateAsync(photo.uri, [{
+                                        crop: {
+                                            // Umrechnung: Bildschirmbreite auf Photobreite
+                                            originX: (item.bounds.origin.x >= 0 ? (photo.width / Dimensions.get('window').width) * item.bounds.origin.x : 0),
+                                            originY: (item.bounds.origin.y >= 0 ? (photo.height / Dimensions.get('window').height) * item.bounds.origin.y : 0),
+                                            width: (photo.width / Dimensions.get('window').width) * item.bounds.size.width,
+                                            height: (photo.height / Dimensions.get('window').height) * item.bounds.size.height
+                                        },
+                                        resize: {
+                                            width: 800
+                                        }
+                                    }
+                                    ], { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true })
+                                        .then((manipPhoto: any) => this.processPhoto(item, manipPhoto))
+                                })
+    
+                            })
+                    })
             }
-        })
-
-        // delete faces from array that have disappeared
-        this.setState((currentState: any) => {
-            return {
-                detectedFaces: currentState.detectedFaces.filter((e: any) => allIDs.includes(e.faceID))
-            }
-        })
-
-    }
+        }
+        */
 
     render() {
+        let camera: Camera | null = null;
+        if (this.state.capturedImage != null) {
+            return (
+                <View style={{ flex: 1 }}>
+                <ImageBackground
+                    style={{ flex: 1 }}
+                    source={{ uri: this.state.capturedImage.uri }}
+                >
+                {
+                    this.state.detectedFaces.map((item: any) => (
+                        <View
+                            key={item.ID}
+                            style={{
+                                borderWidth: 1,
+                                borderColor: 'red',
+                                position: 'absolute',
+                                // Umrechnung: Photobreite auf Bildschirmbreite
+                                left: (item.x / this.state.capturedImage.width) * Dimensions.get('window').width,
+                                top: (item.y / this.state.capturedImage.height) * Dimensions.get('window').height,
+                                width: (item.width / this.state.capturedImage.width) * Dimensions.get('window').width,
+                                height: (item.height / this.state.capturedImage.height) * Dimensions.get('window').height,
+                            }}
+                        ><Text style={styles.givenNameDisplay}>{item.givenName}</Text></View>
+                    ))
+
+                }
+                </ImageBackground>
+
+            </View>
+
+
+            )
+        }
         if (this.state.hasCameraPermission === null) {
             return (
                 <View></View>
@@ -161,30 +249,21 @@ export default class LivePage extends React.Component<any, any> {
                 <Camera
                     style={{ flex: 1 }}
                     type={Camera.Constants.Type.back}
-                    onFacesDetected={this.onFacesDetected}
-                    faceDetectorSettings={this.state.faceDetectorSettings}
+                    //onFacesDetected={this.onFacesDetected}
+                    //faceDetectorSettings={this.state.faceDetectorSettings}
                     // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
                     ref={(ref) => { this.camera = ref }}
                 >
 
                 </Camera>
-                {
-                    this.state.detectedFaces.map((item: any) => (
-                        <View
-                            key={item.faceID}
-                            style={{
-                                borderWidth: 1,
-                                borderColor: 'red',
-                                position: 'absolute',
-                                left: item.x,
-                                top: item.y,
-                                width: item.width,
-                                height: item.height,
-                            }}
-                        ><Text style={styles.givenNameDisplay}>{item.givenName}</Text></View>
-                    ))
+                <View style={{ flexDirection: 'row' }} >
+                    <TouchableOpacity
+                        style={styles.takePhoto}
+                        onPress={this.processPhoto}>
+                        <Image style={styles.innerImage} source={require('../assets/takePhoto.png')}></Image>
+                    </TouchableOpacity>
+                </View>
 
-                }
             </View>
         )
     }

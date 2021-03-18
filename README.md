@@ -7,13 +7,21 @@ Hierbei handelt es sich um das Projekt, das im Rahmen des Wahlfaches PBV des Mas
 Backend:
 
 1. Paket <code>cblas</code> (auf Arch)
-2. face_recognition: <code>pip install face_recognition</code>
-3. flask (über pip)
-4. flask-restful (über pip)
-5. flask-cors (über pip)
-6. flask_mongoengine (über pip)
+2. python -m venv flask-venv
+3. source flask-venv/bin/activate
+4. pip-Pakete installieren in VEnv:
+  * face_recognition
+  * flask
+  * flask-restful
+  * flask-cors
+  * mongoengine
 
-*pymongo (über pip)* (veraltet)
+
+für wiederholt:
+1. source flask-venv/bin/activate
+2. python facemole_server.py
+
+
 
 Frontend:
 
@@ -33,7 +41,7 @@ Frontend:
 
 Datenbank:
 
-1. Docker
+1. Docker installieren und starten
 2. Container starten mit Shell-Skript
 3. docker exec -it mongod /bin/bash
 4. mongo -u root -p example
