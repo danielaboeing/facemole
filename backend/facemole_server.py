@@ -36,6 +36,7 @@ class Person(Document):
 
 
 class User(Document):
+    ownID = StringField()
     fullName = StringField()
     persons = ListField(ReferenceField(Person))
 
@@ -47,7 +48,7 @@ entry = Person(givenName="Jennifer Lawrence",
 entry.save()
 
 User.objects.delete()
-userE = User(fullName="Test User", persons=[entry])
+userE = User(ownID="1234", fullName="Test User", persons=[entry])
 userE.save()
 
 
@@ -65,7 +66,7 @@ class ComparePerson(Resource):
             unknown_encoding = encoding_result[0]
             compare_images = []
             ids = []
-            for person in Person.objects():
+            for person in User.objects(ownID=userid).first().persons:
                 known_image = face_recognition.load_image_file(person.imageUri)
                 known_encoding = face_recognition.face_encodings(known_image)[
                     0]

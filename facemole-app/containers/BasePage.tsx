@@ -14,7 +14,7 @@ import SinglePersonPage from './SinglePersonPage';
 import LivePage from './LivePage';
 import AddPersonPage from './AddPersonPage';
 
-export default class BasePage extends React.Component {
+export default class BasePage extends React.Component<any, any> {
 
     constructor(props: any) {
         super(props);

@@ -2114,7 +2114,7 @@ async@^2.4.0:
 
 asynckit@^0.4.0:
   version "0.4.0"
-  resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
+  resolved "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
 at-least-node@^1.0.0:
@@ -2136,7 +2136,7 @@ available-typed-arrays@^1.0.2:
 
 axios@^0.21.1:
   version "0.21.1"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
+  resolved "https://registry.npmjs.org/axios/-/axios-0.21.1.tgz"
   integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   dependencies:
     follow-redirects "^1.10.0"
@@ -2625,7 +2625,7 @@ colorette@^1.0.7, colorette@^1.2.1:
 
 combined-stream@^1.0.8:
   version "1.0.8"
-  resolved "https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz#c3d45a8b34fd730631a110a8a2520682b31d5a7f"
+  resolved "https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.8.tgz"
   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
   dependencies:
     delayed-stream "~1.0.0"
@@ -2906,7 +2906,7 @@ define-property@^2.0.2:
 
 delayed-stream@~1.0.0:
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
+  resolved "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz"
   integrity sha1-3zrhmayt+31ECqrgsp4icrJOxhk=
 
 denodeify@^1.2.1:
@@ -3169,7 +3169,7 @@ expo-error-recovery@~1.4.0:
 
 expo-face-detector@~8.4.0:
   version "8.4.0"
-  resolved "https://registry.yarnpkg.com/expo-face-detector/-/expo-face-detector-8.4.0.tgz#696680bf8e90143538f85671827506ebf1482d30"
+  resolved "https://registry.npmjs.org/expo-face-detector/-/expo-face-detector-8.4.0.tgz"
   integrity sha512-XTzF6y9EirDU8xOINOGNQK7dBp0fqV7txUgAhfcHCHcKG0wdu9a8tXp5XkKFJLm9wyilOrBMpn/zq61n/FsIqw==
 
 expo-file-system@~9.3.0:
@@ -3189,7 +3189,7 @@ expo-font@~8.4.0:
 
 expo-image-manipulator@~8.4.0:
   version "8.4.0"
-  resolved "https://registry.yarnpkg.com/expo-image-manipulator/-/expo-image-manipulator-8.4.0.tgz#1cc6187e6f582e3bc08b8e2139a33469bdb5a0e5"
+  resolved "https://registry.npmjs.org/expo-image-manipulator/-/expo-image-manipulator-8.4.0.tgz"
   integrity sha512-9gje9wnFrNqMWGLK/fej3BmDnMPMjSmURJzCuVrHAkfQLGvhcW2dT8HIooQt+6/HDkiJ4pYI1X86mYTPiMV5Tw==
 
 expo-image-picker@~9.2.0:
@@ -3505,7 +3505,7 @@ find-up@~5.0.0:
 
 follow-redirects@^1.10.0:
   version "1.13.3"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.3.tgz#e5598ad50174c1bc4e872301e82ac2cd97f90267"
+  resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.13.3.tgz"
   integrity sha512-DUgl6+HDzB0iEptNQEXLx/KhTmDb8tZUHSeLqpnjpknR70H0nC2t9N73BK6fN4hOvJ84pKlIQVQ4k5FFlBedKA==
 
 fontfaceobserver@^2.1.0:
@@ -3525,7 +3525,7 @@ foreach@^2.0.5:
 
 form-data@^4.0.0:
   version "4.0.0"
-  resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.0.tgz#93919daeaf361ee529584b9b31664dc12c9fa452"
+  resolved "https://registry.npmjs.org/form-data/-/form-data-4.0.0.tgz"
   integrity sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==
   dependencies:
     asynckit "^0.4.0"
@@ -5555,6 +5555,11 @@ react-lifecycles-compat@^3.0.4:
   version "3.0.4"
   resolved "https://registry.npmjs.org/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
+
+react-native-device-info@^8.0.6:
+  version "8.0.6"
+  resolved "https://registry.npmjs.org/react-native-device-info/-/react-native-device-info-8.0.6.tgz"
+  integrity sha512-gPLl8CmVhLRGDgZKiz+rXJyMGYRH8DYMTBZrhl4kXXZr+LUBqz/6s5epcNZ17L0bKn9d/r5lh1sfbeiYGXgXmg==
 
 react-native-gesture-handler@~1.8.0:
   version "1.8.0"
