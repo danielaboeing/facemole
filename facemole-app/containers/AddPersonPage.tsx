@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, ImageBackground, Alert, TouchableHighlight, TextInput, Platform } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import axios from 'axios';
+import Global from '../Global';
 
 import styles from '../styles/Main.style';
 
@@ -14,6 +16,7 @@ export default class AddPersonPage extends React.Component<any, any> {
             hasMediaLibraryPermission: null,
             givenName: '',
             capturedImage: null,
+            userID: Global.__USER_ID__
         }
         this.setGivenName = this.setGivenName.bind(this)
         this.saveImage = this.saveImage.bind(this)
@@ -74,10 +77,42 @@ export default class AddPersonPage extends React.Component<any, any> {
         })
     }
 
-    saveImage() {
-        console.log(this.state.givenName);
+    saveImage() {        
+        let formData = new FormData();
+        let uriParts = this.state.capturedImage.uri.split('.');
+        let fileType = uriParts[uriParts.length - 1];
+
+        formData.append('image', {
+            // @ts-ignore "uri" not found because state variable is of type "blob", no object literal
+            uri: this.state.capturedImage.uri,
+            name: `image.${fileType}`,
+            type: `image/${fileType}`,
+        })
+        formData.append('givenName', this.state.givenName);
+
+        axios({
+            method: 'post',
+            url: Global.__SERVER_PATH__ + "/api/" + this.state.userID + "/persons",
+            data: formData,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        }).then((res: any) => {
+            if(res.code === 200){
+                Alert.alert("Erfolg", "Person wurde erfolgreich hinzugefügt.")
+            }
+            else{
+                new Error("Errorcode from Server");
+            }
+        }).catch((reason:any) => {
+            console.log(reason);
+            Alert.alert("Fehler", "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
+        })
+
+
         this.setState({
-            capturedImage: null
+            capturedImage: null,
+            givenName: ""
         })
     }
 

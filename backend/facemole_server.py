@@ -2,7 +2,6 @@
 from flask import Flask
 from flask_restful import Resource, Api
 from flask import request
-from flask import jsonify
 from flask_cors import CORS, cross_origin
 from markupsafe import escape
 from mongoengine import *
@@ -43,24 +42,20 @@ class User(Document):
 
 # For Testing
 Person.objects.delete()
-entry = Person(givenName="Jennifer Lawrence",
-               imageUri="images/known_picture.jpg")
-entry.save()
+newPerson = Person(id="6058c4089143e6ef6c8d4bf1", givenName="Brad Pitt",
+               imageUri="images/6058c4089143e6ef6c8d4bf1.png")
+newPerson.save()
 
 User.objects.delete()
-userE = User(ownID="1234", fullName="Test User", persons=[entry])
+userE = User(ownID="1234", fullName="Test User", persons=[newPerson])
 userE.save()
 
 
 # Routes
 class ComparePerson(Resource):
     def post(self, userid):
-        file = open("face.jpg", "wb")
-        file.write(request.files["image"].read())
-        file.close()
-
         # search db and compare
-        unknown_image = face_recognition.load_image_file("face.jpg")
+        unknown_image = face_recognition.load_image_file(request.files["image"])
         encoding_result = face_recognition.face_encodings(unknown_image)
         if len(encoding_result) > 0:
             unknown_encoding = encoding_result[0]
@@ -88,8 +83,31 @@ class ComparePerson(Resource):
             "givenName": "...none found"
         }
 
+class Persons(Resource):
+    def get(self, userid):
+        pass #TODO
+
+    def post(self, userid):
+        # save new person in db
+        newPerson = Person(givenName=request.args.get("givenName"), imageUri="")
+        newPerson.save()
+
+        # save photo of new person in db with newly created id as file name
+        file = open("images/" + str(newPerson.id) + ".png", "wb") #TODO Fileformat herausfinden?
+        file.write(request.files["image"].read())
+        file.close()
+        newPerson.update(imageUri="images/" + str(newPerson.id) + ".png") #TODO Fileformat s.o.
+
+        # connect new person with user
+        currentUser = User.objects(ownID=userid).first()
+        currentUser.update(add_to_set__persons=[newPerson])
+        currentUser.save()
+        return newPerson.to_json()
+
+
 
 api.add_resource(ComparePerson, '/api/<userid>/compare')
+api.add_resource(Persons, '/api/<userid>/persons')
 
 """
 DB_PATH = "mongodb://localhost:27017"
@@ -110,17 +128,10 @@ def addNewUser(): #TODO
 def adminUserInfo(userid): #TODO
     pass
 
-@app.route('/api/<userid>/persons', methods=['GET'])
-def getKnownPersons(userid): #TODO
-    pass
-
 @app.route('/api/<userid>/<personid>', methods=['GET'])
 def getPersonInfo(userid, personid): #TODO
     pass
 
-@app.route('/api/<userid>/<personid>', methods=['POST'])
-def adminPersonInfo(userid, personid): #TODO
-    pass
 
 """
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, ImageBackground, Alert } from 'react-native';
-import { Camera, FaceDetectionResult } from 'expo-camera';
+import { Camera } from 'expo-camera';
 import axios from 'axios';
 import FormData from 'form-data';
 import Global from '../Global';
@@ -9,7 +9,24 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { Dimensions } from 'react-native';
 
 import styles from '../styles/Main.style';
-import DetectedFace from '../DetectedFace';
+
+class DetectedFace{
+    ID: string;
+    x: number;
+    y: number;
+    height: number;
+    width: number;
+    givenName: string;
+
+    constructor(ID: string, givenName: string, x: number, y: number, height: number, width: number){
+        this.ID = ID;
+        this.givenName = givenName;
+        this.x = x;
+        this.y = y;
+        this.height = height;
+        this.width = width;
+    }
+}
 
 export default class LivePage extends React.Component<any, any> {
 
@@ -83,6 +100,9 @@ export default class LivePage extends React.Component<any, any> {
     }
 
     sendPhoto(photo: any, item: any) {
+        this.setState({
+            detectedFaces: []
+        })
         // contact server
         let formData = new FormData();
         let uriParts = photo.uri.split('.');
@@ -110,7 +130,9 @@ export default class LivePage extends React.Component<any, any> {
                     ]
                 })
             })
-
+        }).catch((reason: any) => {
+            console.log(reason);
+            Alert.alert("Fehler", "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
         })
 
     }
