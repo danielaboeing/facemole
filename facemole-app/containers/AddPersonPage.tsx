@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, ImageBackground, Alert, TouchableHighlight, TextInput, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ImageBackground, Alert, TouchableHighlight, TextInput, Platform, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 import Global from '../Global';
 
@@ -62,8 +64,14 @@ export default class AddPersonPage extends React.Component<any, any> {
     async takePhoto(camera: Camera | null) {
         if (camera && this.state.hasCameraPermission) {
             let photo = await camera.takePictureAsync();
+            let manipPhoto = await ImageManipulator.manipulateAsync(photo.uri, [{
+                resize: {
+                    width: Dimensions.get("window").width
+                },
+            }], { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true })
+
             this.setState({
-                capturedImage: photo
+                capturedImage: manipPhoto
             })
         }
         else {
@@ -77,18 +85,18 @@ export default class AddPersonPage extends React.Component<any, any> {
         })
     }
 
-    saveImage() {        
+    saveImage() {
         let formData = new FormData();
         let uriParts = this.state.capturedImage.uri.split('.');
         let fileType = uriParts[uriParts.length - 1];
 
+        formData.append('givenName', this.state.givenName);
         formData.append('image', {
             // @ts-ignore "uri" not found because state variable is of type "blob", no object literal
             uri: this.state.capturedImage.uri,
             name: `image.${fileType}`,
             type: `image/${fileType}`,
         })
-        formData.append('givenName', this.state.givenName);
 
         axios({
             method: 'post',
@@ -98,13 +106,13 @@ export default class AddPersonPage extends React.Component<any, any> {
                 'Content-Type': 'multipart/form-data',
             }
         }).then((res: any) => {
-            if(res.code === 200){
+            if (res.status === 200) {
                 Alert.alert("Erfolg", "Person wurde erfolgreich hinzugefügt.")
             }
-            else{
-                new Error("Errorcode from Server");
+            else {
+                new Error(res.status);
             }
-        }).catch((reason:any) => {
+        }).catch((reason: any) => {
             console.log(reason);
             Alert.alert("Fehler", "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
         })
@@ -121,25 +129,28 @@ export default class AddPersonPage extends React.Component<any, any> {
         if (this.state.capturedImage != null) {
             return (
                 <View style={{ flex: 1 }}>
-                    <ImageBackground
-                        style={{ flex: 1 }}
+                    <View style={styles.givenNameContainer}>
+                        <TextInput
+                            style={styles.givenNameInput}
+                            onChangeText={this.setGivenName}
+                            placeholder="Namen hier eingeben..."
+                            value={this.state.givenName}
+                        />
+                    </View>
+                    <Image
+                        style={{
+                            width: this.state.capturedImage.width,
+                            height: this.state.capturedImage.height,
+                            marginTop: (Dimensions.get("window").height - this.state.capturedImage.height) / 2  // Bild zentriert positionieren
+                        }}
                         source={{ uri: this.state.capturedImage.uri }}
-                    >
-                        <View style={styles.givenNameContainer}>
-                            <TextInput
-                                style={styles.givenNameInput}
-                                onChangeText={this.setGivenName}
-                                placeholder="Namen hier eingeben..."
-                                value={this.state.givenName}
-                            />
-                        </View>
-                        <TouchableHighlight
-                            style={styles.savePhoto}
-                            onPress={this.saveImage}>
-                            <Image style={styles.innerImage} source={require('../assets/check.png')} />
-                        </TouchableHighlight>
+                    />
+                    <TouchableHighlight
+                        style={styles.savePhoto}
+                        onPress={this.saveImage}>
+                        <Image style={styles.innerImage} source={require('../assets/check.png')} />
+                    </TouchableHighlight>
 
-                    </ImageBackground>
 
                 </View>
             )

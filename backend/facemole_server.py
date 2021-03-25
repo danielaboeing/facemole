@@ -8,6 +8,8 @@ from mongoengine import *
 
 import face_recognition
 
+# Globals
+IMAGE_BASE_PATH="./images/"
 
 app = Flask(__name__)
 # Cross-Origin allowed
@@ -28,10 +30,9 @@ api = Api(app)
 
 # Models
 
-
 class Person(Document):
     givenName = StringField()
-    imageUri = StringField()
+    imageFileName = StringField()
 
 
 class User(Document):
@@ -43,7 +44,7 @@ class User(Document):
 # For Testing
 Person.objects.delete()
 newPerson = Person(id="6058c4089143e6ef6c8d4bf1", givenName="Brad Pitt",
-               imageUri="images/6058c4089143e6ef6c8d4bf1.png")
+               imageFileName="6058c4089143e6ef6c8d4bf1.png")
 newPerson.save()
 
 User.objects.delete()
@@ -62,7 +63,7 @@ class ComparePerson(Resource):
             compare_images = []
             ids = []
             for person in User.objects(ownID=userid).first().persons:
-                known_image = face_recognition.load_image_file(person.imageUri)
+                known_image = face_recognition.load_image_file(IMAGE_BASE_PATH + person.imageFileName)
                 known_encoding = face_recognition.face_encodings(known_image)[
                     0]
                 compare_images.append(known_encoding)
@@ -89,14 +90,16 @@ class Persons(Resource):
 
     def post(self, userid):
         # save new person in db
-        newPerson = Person(givenName=request.args.get("givenName"), imageUri="")
+        newPerson = Person(givenName=request.form.get("givenName"), imageFileName="")
         newPerson.save()
 
         # save photo of new person in db with newly created id as file name
-        file = open("images/" + str(newPerson.id) + ".png", "wb") #TODO Fileformat herausfinden?
+        fileformat = request.files["image"].content_type.split("/")[1]
+        newPerson.imageFileName = str(newPerson.id) + "." + fileformat
+        file = open(IMAGE_BASE_PATH + newPerson.imageFileName, "wb")
         file.write(request.files["image"].read())
         file.close()
-        newPerson.update(imageUri="images/" + str(newPerson.id) + ".png") #TODO Fileformat s.o.
+        newPerson.save()
 
         # connect new person with user
         currentUser = User.objects(ownID=userid).first()

@@ -6,11 +6,12 @@ import FormData from 'form-data';
 import Global from '../Global';
 import * as FaceDetector from 'expo-face-detector';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system';
 import { Dimensions } from 'react-native';
 
 import styles from '../styles/Main.style';
 
-class DetectedFace{
+class DetectedFace {
     ID: string;
     x: number;
     y: number;
@@ -18,7 +19,7 @@ class DetectedFace{
     width: number;
     givenName: string;
 
-    constructor(ID: string, givenName: string, x: number, y: number, height: number, width: number){
+    constructor(ID: string, givenName: string, x: number, y: number, height: number, width: number) {
         this.ID = ID;
         this.givenName = givenName;
         this.x = x;
@@ -60,19 +61,27 @@ export default class LivePage extends React.Component<any, any> {
     }
 
     processPhoto() {
-
-        this.setState({
-            detectFaces: []
-        })
         // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
         if (this.camera && this.state.hasCameraPermission) {
             // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
             this.camera.takePictureAsync()
                 .then((photo: any) => {
                     this.setState({
-                        capturedImage: photo
+                        detectFaces: []
                     })
-                    this.detectFaces()
+                    ImageManipulator.manipulateAsync(photo.uri, [{
+                        resize: {
+                            width: Dimensions.get("window").width
+                        },
+                    }
+                    ], { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true })
+                        .then((manipPhoto: any) => {
+                            this.setState({
+                                capturedImage: manipPhoto
+                            })
+                            this.detectFaces()
+
+                        })
                 })
         }
         else {
@@ -100,9 +109,6 @@ export default class LivePage extends React.Component<any, any> {
     }
 
     sendPhoto(photo: any, item: any) {
-        this.setState({
-            detectedFaces: []
-        })
         // contact server
         let formData = new FormData();
         let uriParts = photo.uri.split('.');
@@ -138,36 +144,42 @@ export default class LivePage extends React.Component<any, any> {
     }
 
     render() {
+        console.log(this.state.detectedFaces)
         let camera: Camera | null = null;
         if (this.state.capturedImage != null) {
             return (
-                <View style={{ flex: 1 }}>
-                    <ImageBackground
-                        style={{ flex: 1 }}
-                        source={{ uri: this.state.capturedImage.uri }}
-                    >
-                        {
-                            this.state.detectedFaces.map((item: any) => (
-                                <View
-                                    key={item.ID}
-                                    style={{
-                                        borderWidth: 1,
-                                        borderColor: 'red',
-                                        position: 'absolute',
-                                        // Umrechnung: Photobreite auf Bildschirmbreite
-                                        left: (item.x / this.state.capturedImage.width) * Dimensions.get('window').width,
-                                        top: (item.y / this.state.capturedImage.height) * Dimensions.get('window').height,
-                                        width: (item.width / this.state.capturedImage.width) * Dimensions.get('window').width,
-                                        height: (item.height / this.state.capturedImage.height) * Dimensions.get('window').height,
-                                    }}
-                                ><Text style={styles.givenNameDisplay}>{item.givenName}</Text></View>
-                            ))
+                <View style={{ flexDirection: 'row' }}>
 
-                        }
-                    </ImageBackground>
+                    <View style={{ flex: 1 }}>
+                        <ImageBackground
+                            style={{
+                                width: this.state.capturedImage.width,
+                                height: this.state.capturedImage.height,
+                                marginTop: (Dimensions.get("window").height - this.state.capturedImage.height) / 2  // Bild zentriert positionieren
+                            }}
+                            source={{ uri: this.state.capturedImage.uri }}
+                        >
+                            {
+                                this.state.detectedFaces.map((item: any) => (
+                                    <View
+                                        key={item.ID}
+                                        style={{
+                                            borderWidth: 1,
+                                            borderColor: 'red',
+                                            position: 'absolute',
+                                            // Umrechnung: Photobreite auf Bildschirmbreite
+                                            left: item.x,
+                                            top: item.y,
+                                            width: item.width,
+                                            height: item.height,
+                                        }}
+                                    ><Text style={styles.givenNameDisplay}>{item.givenName}</Text></View>
+                                ))
 
+                            }
+                        </ImageBackground>
+                    </View>
                 </View>
-
 
             )
         }
@@ -191,15 +203,14 @@ export default class LivePage extends React.Component<any, any> {
                     // @ts-ignore type "camera" does not exist on type "LivePage" - no fix from Camera module yet to support TS
                     ref={(ref) => { this.camera = ref }}
                 >
-
+                    <View style={styles.takePhotoContainer} >
+                        <TouchableOpacity
+                            style={styles.takePhoto}
+                            onPress={this.processPhoto}>
+                            <Image style={styles.innerImage} source={require('../assets/takePhoto.png')}></Image>
+                        </TouchableOpacity>
+                    </View>
                 </Camera>
-                <View style={{ flexDirection: 'row' }} >
-                    <TouchableOpacity
-                        style={styles.takePhoto}
-                        onPress={this.processPhoto}>
-                        <Image style={styles.innerImage} source={require('../assets/takePhoto.png')}></Image>
-                    </TouchableOpacity>
-                </View>
 
             </View>
         )

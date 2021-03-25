@@ -120,6 +120,7 @@ export default StyleSheet.create({
         position: 'relative',
         marginLeft: 'auto',
         marginRight: 'auto',
+        marginTop: '5%'
 
     },
     givenNameContainer: {
@@ -145,6 +146,12 @@ export default StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         right: 10
+    },
+    takePhotoContainer: {
+        flexDirection: 'row', 
+        position: 'absolute', 
+        width: '100%', 
+        bottom: '5%'
     }
 
 });
