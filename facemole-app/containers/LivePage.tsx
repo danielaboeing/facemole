@@ -202,13 +202,12 @@ export default class LivePage extends React.Component<any, any> {
                             }
                         </ImageBackground>
                         <View style={styles.statusContainer}>
-                        <Text style={styles.statusText}>
-                            Status:
-                        </Text>
-                        <Text style={styles.statusContent}>
-                            {this.state.progressState}
-                        </Text>
-
+                            <Text style={styles.statusText}>
+                                Status:
+                            </Text>
+                            <Text style={styles.statusContent}>
+                                {this.state.progressState}
+                            </Text>
                         </View>
                     </View>
                 </View>
