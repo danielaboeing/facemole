@@ -109,8 +109,8 @@ export default StyleSheet.create({
     },
     takePhoto: {
         position: 'relative',
-        height: 50,
-        width: 50,
+        height: 70,
+        width: 70,
         marginLeft: 'auto',
         marginRight: 'auto'
     },
@@ -164,6 +164,30 @@ export default StyleSheet.create({
     },
     statusContent: {
         fontSize: 16,
+    },
+
+    // PersonsPage
+    listContainer: {
+        marginTop: 10,
+        marginBottom: 10
+    },
+    entryContainer: {
+        flexDirection: 'row',
+        borderBottomColor: highlightColor,
+        borderBottomWidth: 1,
+        paddingBottom: 10,
+        paddingTop: 10,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+    nameEntry: {
+        flex: 6,
+        fontSize: 20,
+        alignContent: 'center',
+    },
+    iconEntry: { 
+        flex: 1,
+        color: highlightColor
     }
 
 });

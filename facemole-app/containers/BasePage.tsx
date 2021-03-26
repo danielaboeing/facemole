@@ -31,8 +31,8 @@ export default class BasePage extends React.Component<any, any> {
                 >
                     <Stack>
                         <Scene key="frontPage" component={FrontPage} title="Startseite" />
-                        <Scene key="accountPage" component={AccountPage} title="Konto verwalten" />
                         <Scene key="personsPage" component={PersonsPage} title="Personen verwalten" />
+                        <Scene key="accountPage" component={AccountPage} title="Konto verwalten" />
                         <Scene key="singlePersonPage" component={SinglePersonPage} title="Person verwalten" />
                         <Scene key="livePage" component={LivePage} hideNavBar={true} title="Live" />
                         <Scene key="addPersonPage" component={AddPersonPage} hideNavBar={true} title="Person hinzufügen" />

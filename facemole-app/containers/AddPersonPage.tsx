@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, ImageBackground, Alert, TouchableHighlight, TextInput, Platform, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Alert, TouchableHighlight, TextInput, Platform, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 import Global from '../Global';
 

@@ -127,6 +127,13 @@ export default class LivePage extends React.Component<any, any> {
                             })
                             this.sendPhoto(manipPhoto, item)
                         })
+                        .catch(() => {
+                            // invalid crop options: vollständiges Bild ausreichend
+                            this.setState({
+                                progressState: ProgressState.FaceDetected
+                            })
+                            this.sendPhoto(this.state.capturedImage, item)
+                        })
                 })
 
             })
@@ -153,14 +160,27 @@ export default class LivePage extends React.Component<any, any> {
                 'Content-Type': 'multipart/form-data',
             }
         }).then((res: any) => {
-            this.setState((currentState: any) => {
-                return ({
-                    progressState: ProgressState.ServerResponded,
-                    detectedFaces: [...currentState.detectedFaces,
-                    new DetectedFace(res.data.ID, res.data.givenName, item.bounds.origin.x, item.bounds.origin.y, item.bounds.size.height, item.bounds.size.width)
-                    ]
+            if (res.status === 204) {
+                // "No Content" - Gesicht wurde nicht gefunden, es wird ein Platzhalter erzeugt
+                this.setState((currentState: any) => {
+                    return ({
+                        progressState: ProgressState.ServerResponded,
+                        detectedFaces: [...currentState.detectedFaces,
+                        new DetectedFace(currentState.detectedFaces.length, "... nicht gefunden", item.bounds.origin.x, item.bounds.origin.y, item.bounds.size.height, item.bounds.size.width)
+                        ]
+                    })
                 })
-            })
+            }
+            else {
+                this.setState((currentState: any) => {
+                    return ({
+                        progressState: ProgressState.ServerResponded,
+                        detectedFaces: [...currentState.detectedFaces,
+                        new DetectedFace(res.data.ID, res.data.givenName, item.bounds.origin.x, item.bounds.origin.y, item.bounds.size.height, item.bounds.size.width)
+                        ]
+                    })
+                })
+            }
         }).catch((reason: any) => {
             console.log(reason);
             Alert.alert("Fehler", "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");

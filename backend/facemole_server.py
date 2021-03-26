@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from flask import Flask
+from flask import Flask, request, abort
 from flask_restful import Resource, Api
-from flask import request
 from flask_cors import CORS, cross_origin
 from markupsafe import escape
 from mongoengine import *
@@ -77,16 +76,18 @@ class ComparePerson(Resource):
                     return {  # Take first match only
                         "ID": str(match_obj.id),
                         "givenName": match_obj.givenName
-                    }
+                    }, 200
                 counter = counter+1
-        return {
-            "ID": "",
-            "givenName": "...none found"
-        }
+        return {}, 204
 
 class Persons(Resource):
     def get(self, userid):
-        pass #TODO
+        # get all persons of certain user
+        persons = User.objects(ownID=userid).first().persons
+        results = []
+        for person in persons:
+            results.append(person.to_json())
+        return results, 200
 
     def post(self, userid):
         # save new person in db
@@ -105,38 +106,23 @@ class Persons(Resource):
         currentUser = User.objects(ownID=userid).first()
         currentUser.update(add_to_set__persons=[newPerson])
         currentUser.save()
-        return newPerson.to_json()
+        return newPerson.to_json(), 201
 
 
+class SinglePerson(Resource):
+    def delete(self, userid, personid):
+        deletePerson = Person.objects(id=personid).first()
+        user = User.objects(ownID=userid).first()
+        user.update(pull__persons=deletePerson)
+        user.save()
+        deletePerson.delete()
+        return {}, 204
+
+        
 
 api.add_resource(ComparePerson, '/api/<userid>/compare')
 api.add_resource(Persons, '/api/<userid>/persons')
-
-"""
-DB_PATH = "mongodb://localhost:27017"
-DB_USER = "root"
-DB_PASSWORD = "example"
-
-@app.route('/api/<userid>', methods=['GET'])
-def getUserInfo(userid): #TODO
-    with MongoClient(DB_PATH) as client:
-        db = client["facemole"]
-    return escape(userid)
-
-@app.route('/api/user', methods=['POST'])
-def addNewUser(): #TODO
-    pass
-
-@app.route('/api/<userid>', methods=['POST'])
-def adminUserInfo(userid): #TODO
-    pass
-
-@app.route('/api/<userid>/<personid>', methods=['GET'])
-def getPersonInfo(userid, personid): #TODO
-    pass
-
-
-"""
+api.add_resource(SinglePerson, '/api/<userid>/persons/<personid>')
 
 
 if __name__ == '__main__':
