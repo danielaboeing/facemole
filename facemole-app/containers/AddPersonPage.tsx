@@ -17,6 +17,12 @@ export default class AddPersonPage extends React.Component<any, any> {
             hasCameraPermission: null,
             hasMediaLibraryPermission: null,
             givenName: '',
+            // zum Testen
+            /*capturedImage: {
+                uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540anonymous%252Ffacemole-app-3995658d-e765-4886-b292-6fec097d7abe/ImageManipulator/3d5aa3c1-52b4-4266-8326-13cb966500ff.jpg",
+                width: 411,
+                height: 548
+            },*/
             capturedImage: null,
             userID: Global.__USER_ID__
         }
@@ -126,7 +132,7 @@ export default class AddPersonPage extends React.Component<any, any> {
 
     render() {
         let camera: Camera | null = null;
-        if (this.state.capturedImage != null) {
+        if (this.state.capturedImage !== null) {
             return (
                 <View style={{ flex: 1 }}>
                     <View style={styles.givenNameContainer}>

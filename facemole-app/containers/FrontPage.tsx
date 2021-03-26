@@ -1,4 +1,5 @@
-import React, { version } from 'react';
+import Constants from 'expo-constants';
+import React from 'react';
 import { View, Image, TouchableHighlight, Text } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
@@ -22,7 +23,7 @@ export default class FrontPage extends React.Component {
                 </TouchableHighlight>
 
                 <View style={styles.versionText}>
-                    <Text>FaceMole 2021</Text>
+                    <Text>FaceMole v{Constants.nativeAppVersion}</Text>
                 </View>
             </View>
         )

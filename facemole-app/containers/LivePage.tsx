@@ -6,7 +6,6 @@ import FormData from 'form-data';
 import Global from '../Global';
 import * as FaceDetector from 'expo-face-detector';
 import * as ImageManipulator from 'expo-image-manipulator';
-import * as FileSystem from 'expo-file-system';
 import { Dimensions } from 'react-native';
 
 import styles from '../styles/Main.style';
@@ -29,13 +28,32 @@ class DetectedFace {
     }
 }
 
+enum ProgressState {
+    Initialize = "Initialisierung...",
+    PhotoShot = "Foto wurde geschossen...",
+    PhotoManipulated = "Foto wurde vorverarbeitet... Sollte der Status zu lange anhalten, wurde kein Gesicht gefunden.",
+    FaceDetected = "Gesicht wurde entdeckt und wird an den Server gesandt...",
+    ServerResponded = "Serverantwort liegt vor, Gesichtserkennung abgeschlossen."
+}
+
 export default class LivePage extends React.Component<any, any> {
 
     constructor(props: any) {
         super(props);
         this.state = {
             hasCameraPermission: null,
-            detectedFaces: []
+            detectedFaces: [],
+            capturedImage: null,
+            progressState: ProgressState.Initialize,
+            // Testen
+            /*capturedImage: {
+                uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540anonymous%252Ffacemole-app-3995658d-e765-4886-b292-6fec097d7abe/ImageManipulator/3d5aa3c1-52b4-4266-8326-13cb966500ff.jpg",
+                width: 411,
+                height: 548
+            },
+            detectedFaces: [{ 
+                new DetectedFace(1, "Test", 50, 50, 100m 100)
+            }]*/
 
         }
         this.processPhoto = this.processPhoto.bind(this)
@@ -67,7 +85,8 @@ export default class LivePage extends React.Component<any, any> {
             this.camera.takePictureAsync()
                 .then((photo: any) => {
                     this.setState({
-                        detectFaces: []
+                        detectFaces: [],
+                        progressState: ProgressState.PhotoShot
                     })
                     ImageManipulator.manipulateAsync(photo.uri, [{
                         resize: {
@@ -77,10 +96,10 @@ export default class LivePage extends React.Component<any, any> {
                     ], { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true })
                         .then((manipPhoto: any) => {
                             this.setState({
-                                capturedImage: manipPhoto
+                                capturedImage: manipPhoto,
+                                progressState: ProgressState.PhotoManipulated
                             })
                             this.detectFaces()
-
                         })
                 })
         }
@@ -102,7 +121,12 @@ export default class LivePage extends React.Component<any, any> {
                         },
                     }
                     ], { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true })
-                        .then((manipPhoto: any) => this.sendPhoto(manipPhoto, item))
+                        .then((manipPhoto: any) => {
+                            this.setState({
+                                progressState: ProgressState.FaceDetected
+                            })
+                            this.sendPhoto(manipPhoto, item)
+                        })
                 })
 
             })
@@ -131,6 +155,7 @@ export default class LivePage extends React.Component<any, any> {
         }).then((res: any) => {
             this.setState((currentState: any) => {
                 return ({
+                    progressState: ProgressState.ServerResponded,
                     detectedFaces: [...currentState.detectedFaces,
                     new DetectedFace(res.data.ID, res.data.givenName, item.bounds.origin.x, item.bounds.origin.y, item.bounds.size.height, item.bounds.size.width)
                     ]
@@ -144,11 +169,10 @@ export default class LivePage extends React.Component<any, any> {
     }
 
     render() {
-        console.log(this.state.detectedFaces)
         let camera: Camera | null = null;
-        if (this.state.capturedImage != null) {
+        if (this.state.capturedImage !== null) {
             return (
-                <View style={{ flexDirection: 'row' }}>
+                <View>
 
                     <View style={{ flex: 1 }}>
                         <ImageBackground
@@ -175,9 +199,17 @@ export default class LivePage extends React.Component<any, any> {
                                         }}
                                     ><Text style={styles.givenNameDisplay}>{item.givenName}</Text></View>
                                 ))
-
                             }
                         </ImageBackground>
+                        <View style={styles.statusContainer}>
+                        <Text style={styles.statusText}>
+                            Status:
+                        </Text>
+                        <Text style={styles.statusContent}>
+                            {this.state.progressState}
+                        </Text>
+
+                        </View>
                     </View>
                 </View>
 

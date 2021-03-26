@@ -56,7 +56,6 @@ export default StyleSheet.create({
     },
     sidebarBottom: {
         height: '100%',
-        backgroundColor: bgColorAlt,
     },
     sidebarMenuItem: {
         color: textColor,
@@ -92,8 +91,9 @@ export default StyleSheet.create({
     },
     versionText: {
         position: 'absolute',
-        right: 0,
-        bottom: 0,
+        right: 10,
+        bottom: 10,
+        color: textColor
     },
 
     // AddPersonPage
@@ -120,14 +120,14 @@ export default StyleSheet.create({
         position: 'relative',
         marginLeft: 'auto',
         marginRight: 'auto',
-        marginTop: '5%'
+        textAlign: 'center'
 
     },
     givenNameContainer: {
         backgroundColor: 'white',
         width: '100%',
         position: 'absolute',
-        top: 0,
+        top: 50,
         padding: 20
     },
     savePhoto: {
@@ -136,8 +136,8 @@ export default StyleSheet.create({
         width: 80,
         marginLeft: 'auto',
         marginRight: 'auto',
-        bottom: '10%',
-        right: '10%'
+        bottom: '5%',
+        right: '5%'
     },
 
     //LivePage
@@ -152,6 +152,18 @@ export default StyleSheet.create({
         position: 'absolute', 
         width: '100%', 
         bottom: '5%'
+    },
+    statusContainer: {
+        flex: 1,
+        padding: 20,
+    },
+    statusText: {
+        fontSize: 22,
+        color: highlightColor,
+        marginBottom: 10,
+    },
+    statusContent: {
+        fontSize: 16,
     }
 
 });
