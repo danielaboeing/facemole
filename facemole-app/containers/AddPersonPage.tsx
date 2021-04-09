@@ -7,6 +7,7 @@ import axios from 'axios';
 import Global from '../Global';
 
 import styles from '../styles/Main.style';
+import TakePhoto from './TakePhoto';
 
 export default class AddPersonPage extends React.Component<any, any> {
 
@@ -25,63 +26,11 @@ export default class AddPersonPage extends React.Component<any, any> {
             capturedImage: null,
             userID: Global.__USER_ID__
         }
-        this.setGivenName = this.setGivenName.bind(this)
-        this.saveImage = this.saveImage.bind(this)
-        this.choosePhoto = this.choosePhoto.bind(this)
-    }
-
-    componentDidMount() {
-        Camera.requestPermissionsAsync()
-            .then(data => {
-                this.setState({
-                    hasCameraPermission: data.status
-                })
-            });
-        if (Platform.OS !== 'web') {
-            ImagePicker.requestMediaLibraryPermissionsAsync()
-                .then(data => {
-                    this.setState({
-                        hasMediaLibraryPermission: data.status
-                    })
-                })
-        }
-    }
-
-    async choosePhoto() {
-        if (this.state.hasMediaLibraryPermission) {
-            let result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.All,
-                allowsEditing: true,
-                aspect: [1, 2],
-                quality: 1,
-            });
-            if (!result.cancelled) {
-                this.setState({
-                    capturedImage: result
-                })
-            }
-        }
-        else {
-            Alert.alert("Fehler", "Es kann nicht auf Bilder zugegriffen werden, wenn keine Erlaubnis für den Zugriff auf die Media Library besteht.")
-        }
-    }
-
-    async takePhoto(camera: Camera | null) {
-        if (camera && this.state.hasCameraPermission) {
-            let photo = await camera.takePictureAsync();
-            let manipPhoto = await ImageManipulator.manipulateAsync(photo.uri, [{
-                resize: {
-                    width: Dimensions.get("window").width
-                },
-            }], { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true })
-
-            this.setState({
-                capturedImage: manipPhoto
-            })
-        }
-        else {
-            Alert.alert("Fehler", "Die Kamera kann nicht genutzt werden, solange es die Berechtigung nicht erteilt wurde.")
-        }
+        this.setGivenName = this.setGivenName.bind(this);
+        this.saveImage = this.saveImage.bind(this);
+        this.setCapturedImage = this.setCapturedImage.bind(this);
+        this.sendImageData = this.sendImageData.bind(this);
+        this.cleanUp = this.cleanUp.bind(this);
     }
 
     setGivenName(text: String) {
@@ -90,12 +39,37 @@ export default class AddPersonPage extends React.Component<any, any> {
         })
     }
 
-    saveImage() {
+    saveImage(image: any) {
+        let formData = new FormData();
+
+        formData.append('givenName', this.state.givenName);
+
+        axios({
+            method: 'post',
+            url: Global.__SERVER_PATH__ + "/api/" + this.state.userID + "/persons",
+            data: formData,
+        }).then((resPerson: any) => {
+            this.sendImageData(resPerson)
+        }).catch((reason: any) => {
+            console.log(reason);
+            Alert.alert("Fehler", "Es ist ein Fehler beim Speichern der Person aufgetreten. Bitte versuchen Sie es erneut.");
+            this.cleanUp()
+        })
+
+    }
+
+    cleanUp(){
+        this.setState({
+            capturedImage: null,
+            givenName: ""
+        })
+    }
+
+    sendImageData(resPerson: any) {
         let formData = new FormData();
         let uriParts = this.state.capturedImage.uri.split('.');
         let fileType = uriParts[uriParts.length - 1];
-
-        formData.append('givenName', this.state.givenName);
+        let personJSON = JSON.parse(resPerson.data)
         formData.append('image', {
             // @ts-ignore "uri" not found because state variable is of type "blob", no object literal
             uri: this.state.capturedImage.uri,
@@ -105,32 +79,36 @@ export default class AddPersonPage extends React.Component<any, any> {
 
         axios({
             method: 'post',
-            url: Global.__SERVER_PATH__ + "/api/" + this.state.userID + "/persons",
+            url: Global.__SERVER_PATH__ + "/api/" + this.state.userID + "/persons/" + personJSON._id.$oid + "/photo",
             data: formData,
             headers: {
                 'Content-Type': 'multipart/form-data',
             }
-        }).then((res: any) => {
-            if (res.status === 200) {
-                Alert.alert("Erfolg", "Person wurde erfolgreich hinzugefügt.")
+        }).then((resPhoto: any) => {
+            if (resPhoto.status === 201) {
+                if (resPerson.status === 201) {
+                    Alert.alert("Erfolg", "Person wurde erfolgreich hinzugefügt.")
+                }
+                if (resPerson.status === 204) {
+                    Alert.alert("Erfolg", "Person wurde erfolgreich geupdated.")
+                }
             }
-            else {
-                new Error(res.status);
-            }
+            this.cleanUp()
         }).catch((reason: any) => {
             console.log(reason);
-            Alert.alert("Fehler", "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
+            Alert.alert("Fehler", "Es ist ein Fehler beim Speichern des Bildes aufgetreten. Bitte fügen Sie dieses manuell hinzu.");
+            this.cleanUp()
         })
 
+    }
 
+    setCapturedImage(image: any) {
         this.setState({
-            capturedImage: null,
-            givenName: ""
+            capturedImage: image
         })
     }
 
     render() {
-        let camera: Camera | null = null;
         if (this.state.capturedImage !== null) {
             return (
                 <View style={{ flex: 1 }}>
@@ -161,47 +139,9 @@ export default class AddPersonPage extends React.Component<any, any> {
             )
         }
         else {
-            if (this.state.hasCameraPermission === null) {
-                return (
-                    <View></View>
-                )
-            }
-            if (this.state.hasCameraPermission !== 'granted') {
-                return (
-                    <View style={{ flex: 1 }}>
-                        <Text>Kein Zugriff auf die Kamera.</Text>
-                        <View style={{ flexDirection: 'row' }} >
-                            <TouchableOpacity
-                                style={styles.takePhoto}
-                                onPress={this.choosePhoto}>
-                                <Image style={styles.innerImage} source={require('../assets/choosePhoto.png')}></Image>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                )
-            }
             return (
-                <View style={{ flex: 1 }}>
-                    <Camera style={{ flex: 1 }} type={Camera.Constants.Type.back} ref={(ref) => { camera = ref }}>
-                        <View style={styles.cameraRectangle}
-                        ></View>
-                        <View style={{ flexDirection: 'row' }} >
-                            <TouchableOpacity
-                                style={styles.takePhoto}
-                                onPress={() => this.takePhoto(camera)}>
-                                <Image style={styles.innerImage} source={require('../assets/takePhoto.png')}></Image>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.takePhoto}
-                                onPress={this.choosePhoto}>
-                                <Image style={styles.innerImage} source={require('../assets/choosePhoto.png')}></Image>
-                            </TouchableOpacity>
-
-                        </View>
-                    </Camera>
-                </View>
+                <TakePhoto enableChoosePhoto={true} onPhotoTaken={this.setCapturedImage} />
             )
-
         }
     }
 }

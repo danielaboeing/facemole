@@ -70,7 +70,7 @@ export default class PersonsPage extends React.Component<any, any> {
                                 <Ionicons name="trash" size={30} style={styles.iconEntry} />
                             </TouchableHighlight>
                             <TouchableHighlight
-                                onPress={() => Actions.singlePersonPage({ person: item })}
+                                onPress={() => Actions.singlePersonPage({ personID: item._id.$oid })}
                             >
                                 <Ionicons name="brush" size={30} style={styles.iconEntry} />
                             </TouchableHighlight>

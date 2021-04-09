@@ -38,6 +38,7 @@ Frontend:
 * axios
 * form-data
 * expo-image-manipulator
+* expo-file-system
 
 Datenbank:
 
