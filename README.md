@@ -1,10 +1,10 @@
 # FaceMole
 
-Hierbei handelt es sich um das Projekt, das im Rahmen des Wahlfaches PBV des Master Informatiks (Hochschule Bochum) angefertigt wurde.
+FaceMole ist eine Client-Server-Anwendung, die Menschen mit Prosopagnosie (Gesichtsblindheit) zu helfen. Hierzu steht eine React-Native-Anwendung zur Verfügung, mit der Gesichter bekannter Menschen mit Namen gespeichert werden können. Mittels des Python-Flask-Backends mit MongoDB-Datenbank können dann später bekannte Menschen wiedererkannt werden.
 
 ## Benötigte Pakete
 
-Backend:
+### Backend
 
 1. Paket <code>cblas</code> (auf Arch)
 2. python -m venv flask-venv
@@ -17,13 +17,7 @@ Backend:
   * mongoengine
 
 
-für wiederholt:
-1. source flask-venv/bin/activate
-2. python facemole_server.py
-
-
-
-Frontend:
+### Frontend
 
 1. npm
 2. expo (npm install -g expo-cli)
@@ -40,7 +34,7 @@ Frontend:
 * expo-image-manipulator
 * expo-file-system
 
-Datenbank:
+### Datenbank
 
 1. Docker installieren und starten
 2. Container starten mit Shell-Skript

@@ -29,6 +29,10 @@ export default class SidebarMenu extends React.Component<any, any> {
                     <TouchableHighlight onPress={() => Actions.accountPage()} >
                         <Text style={styles.sidebarMenuItem}>Konto verwalten</Text>
                     </TouchableHighlight>
+
+                    <TouchableHighlight onPress={() => Actions.settingsPage()} >
+                        <Text style={styles.sidebarMenuItem}>Einstellungen</Text>
+                    </TouchableHighlight>
                 </View>
             </View>
 

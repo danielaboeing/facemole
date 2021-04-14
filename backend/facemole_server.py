@@ -121,7 +121,6 @@ class PersonPhoto(Resource):
         file.write(request.files["image"].read())
         file.close()
         requestedPerson.save()
-        print(requestedPerson.imageFileName)
         return requestedPerson.to_json(), 201
 
 

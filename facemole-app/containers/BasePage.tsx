@@ -13,6 +13,7 @@ import PersonsPage from './PersonsPage';
 import SinglePersonPage from './SinglePersonPage';
 import LivePage from './LivePage';
 import AddPersonPage from './AddPersonPage';
+import SettingsPage from './SettingsPage';
 
 export default class BasePage extends React.Component<any, any> {
 
@@ -36,6 +37,7 @@ export default class BasePage extends React.Component<any, any> {
                         <Scene key="singlePersonPage" component={SinglePersonPage} title="Person verwalten" />
                         <Scene key="livePage" component={LivePage} hideNavBar={true} title="Live" />
                         <Scene key="addPersonPage" component={AddPersonPage} hideNavBar={true} title="Person hinzufügen" />
+                        <Scene key="settingsPage" component={SettingsPage} title="Einstellungen" />
                     </Stack>
                 </Drawer>
             </Router>

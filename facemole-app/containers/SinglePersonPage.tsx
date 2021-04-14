@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Dimensions, Image, Alert } from 'react-native';
+import { View, Text, Image, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import Global from '../Global';
 import axios from 'axios';
+import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 
 import styles from '../styles/Main.style';
@@ -18,6 +19,7 @@ export default class SinglePersonPage extends React.Component<any, any> {
             image: null,
             imageFileType: 'png',
             takePhoto: false,
+            loadCompleted: false,
         }
         this.setGivenName = this.setGivenName.bind(this);
         this.updatePersonInfo = this.updatePersonInfo.bind(this);
@@ -40,11 +42,15 @@ export default class SinglePersonPage extends React.Component<any, any> {
                 FileSystem.cacheDirectory + "currentPerson" + this.state.imageFileType
             ).then((resPhoto: any) => {
                 this.setState({
-                    image: resPhoto
+                    image: resPhoto,
+                    loadCompleted: true
                 })
             }).catch((reason: any) => {
                 console.log(reason);
                 Alert.alert("Fehler", "Das Bild konnte nicht geladen werden. Bitte versuchen Sie es erneut.");
+                this.setState({
+                    loadCompleted: true
+                })
             })
 
         }).catch((reason: any) => {
@@ -126,37 +132,52 @@ export default class SinglePersonPage extends React.Component<any, any> {
             )
         }
         return (
-            <View>
-                <Text>Personübersicht</Text>
-                <Text>Name: </Text>
-                <TextInput
-                    style={styles.givenNameInput}
-                    onChangeText={this.setGivenName}
-                    value={this.state.givenName}
-                ></TextInput>
-                {this.state.image ?
-                    <Image
-                        style={{
-                            width: 100,
-                            height: 100,
-                        }}
-                        source={{ uri: this.state.image.uri }}
-                    />
-                    :
-                    <Text>Kein Bild vorhanden.</Text>
-                }
-                <TouchableHighlight
-                    onPress={() => this.setState({ takePhoto: true })}
-                >
-                    <Text>Neues Foto</Text>
-                </TouchableHighlight>
+            <View style={{ flexDirection: 'column' }}>
+                <View style={{ flexDirection: 'row' }}>
+                    <View style={styles.infoContentWrapper}>
+                        <Text style={styles.inputLabel}>Name: </Text>
+                        <TextInput
+                            style={styles.inputField}
+                            onChangeText={this.setGivenName}
+                            value={this.state.givenName}
+                        ></TextInput>
+                    </View>
+                    <View style={{ flex: 2 }}>
+                        {this.state.image ?
+                            <Image
+                                style={styles.personPicture}
+                                source={{ uri: this.state.image.uri }}
+                            />
+                            :
+                            (this.state.loadComplete ?
+                                <Text style={styles.personPictureText}>Kein Bild vorhanden.</Text>
+                                :
+                                <Text style={styles.personPictureText}>Bild wird geladen...</Text>
+                            )
+                        }
 
-                <TouchableHighlight
-                    onPress={this.updatePersonInfo}
-                >
-                    <Text>Speichern</Text>
-                </TouchableHighlight>
+                    </View>
+                </View>
+                <View style={styles.btnWrapper}>
+
+                    <TouchableHighlight
+                        onPress={() => this.setState({ takePhoto: true })}
+                        style={styles.newPhotoBtn}
+                    >
+                        <MaterialIcons name="add-a-photo" size={30} style={styles.btnIcon} />
+                    </TouchableHighlight>
+
+                    <TouchableHighlight
+                        onPress={this.updatePersonInfo}
+                        style={styles.saveBtn}
+                    >
+                        <Entypo name="save" size={30} style={styles.btnIcon} />
+                    </TouchableHighlight>
+
+                </View>
+
             </View>
+
         )
     }
 }

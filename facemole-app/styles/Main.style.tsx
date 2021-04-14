@@ -18,7 +18,20 @@ export default StyleSheet.create({
         resizeMode: 'cover',
         margin: 0
     },
-
+    inputField: {
+        fontSize: 16,
+        textAlign: 'center',
+        borderColor: textColor,
+        borderWidth: 1,
+    },
+    inputLabel: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    btnIcon: {
+        color: highlightColor
+    },
 
     // Navigation Bar
     navigationBar: {
@@ -89,12 +102,6 @@ export default StyleSheet.create({
         marginTop: '10%',
         position: 'relative'
     },
-    versionText: {
-        position: 'absolute',
-        right: 10,
-        bottom: 10,
-        color: textColor
-    },
 
     // AddPersonPage
     cameraRectangle: {
@@ -148,9 +155,9 @@ export default StyleSheet.create({
         right: 10
     },
     takePhotoContainer: {
-        flexDirection: 'row', 
-        position: 'absolute', 
-        width: '100%', 
+        flexDirection: 'row',
+        position: 'absolute',
+        width: '100%',
         bottom: '5%'
     },
     statusContainer: {
@@ -185,9 +192,49 @@ export default StyleSheet.create({
         fontSize: 20,
         alignContent: 'center',
     },
-    iconEntry: { 
+
+
+    // SinglePersonPage
+    personPicture: {
+        marginTop: 40,
+        marginRight: 20,
+        width: '90%',
+        height: 200,
+    },
+    personPictureText: {
+        fontWeight: 'bold',
+        marginTop: 40,
+        textAlign: 'right',
+        paddingRight: 20
+    },
+    newPhotoBtn: {
+        width: 50
+    },
+    saveBtn: {
+        width: 50,
+    },
+    
+    infoContentWrapper: {
         flex: 1,
-        color: highlightColor
-    }
+        padding: 20,
+        height: 240,
+    },
+    btnWrapper: {
+        flexDirection: 'row',
+        padding: 20, 
+        justifyContent: 'flex-end',
+        alignItems: 'stretch',
+    },
+
+    //AccountPage
+    accountContentWrapper: {
+        padding: 20,
+    },
+    saveChangesBtn: {
+        alignSelf: 'flex-end',
+        marginTop: 20
+    },
+
+    
 
 });

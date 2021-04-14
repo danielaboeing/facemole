@@ -1,6 +1,6 @@
 import React from 'react';
 import Global from '../Global';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
 
 import styles from '../styles/Main.style';
@@ -64,18 +64,18 @@ export default class AccountPage extends React.Component<any, any> {
 
     render() {
         return (
-            <View>
-                <Text>Infos:</Text>
-                <Text>Vollständiger Name: </Text>
+            <View style={styles.accountContentWrapper}>
+                <Text style={styles.inputLabel}>Vollständiger Name: </Text>
                 <TextInput
-                    style={styles.givenNameInput}
+                    style={styles.inputField}
                     onChangeText={this.setFullName}
                     value={this.state.fullName}
                 ></TextInput>
                 <TouchableHighlight
                     onPress={this.updateUserInfo}
+                    style={styles.saveChangesBtn}
                 >
-                    <Text>Hier</Text>
+                    <Entypo name="save" size={50} style={styles.btnIcon} />
                 </TouchableHighlight>
             </View>
         )

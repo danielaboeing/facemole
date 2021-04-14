@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, View, FlatList, Text, TouchableHighlight } from 'react-native';
 import axios from 'axios';
 import Global from '../Global';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 
 import styles from '../styles/Main.style';
@@ -67,16 +67,16 @@ export default class PersonsPage extends React.Component<any, any> {
                             <TouchableHighlight
                                 onPress={() => this.deleteItem(item)}
                             >
-                                <Ionicons name="trash" size={30} style={styles.iconEntry} />
+                                <Ionicons name="trash" size={30} style={styles.btnIcon} />
                             </TouchableHighlight>
                             <TouchableHighlight
                                 onPress={() => Actions.singlePersonPage({ personID: item._id.$oid })}
                             >
-                                <Ionicons name="brush" size={30} style={styles.iconEntry} />
+                                <FontAwesome name="pencil" size={30} style={styles.btnIcon} />
                             </TouchableHighlight>
                         </View>
                     )}
-                    keyExtractor={(item: any) => item.id}
+                    keyExtractor={(item: any) => item._id.$oid}
                 />
             </View>
         )
